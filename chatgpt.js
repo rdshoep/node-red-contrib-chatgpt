@@ -1,5 +1,6 @@
 module.exports = (RED) => {
   const { Configuration, OpenAIApi } = require("openai");
+  const ACCEPT_TOPIC_LIST = ["completion", "image", "edit", "turbo"];
   const main = function(config) {
       const node = this;
       RED.nodes.createNode(node, config);
@@ -14,12 +15,13 @@ module.exports = (RED) => {
 
       node.on('input', async (msg) => {
         node.status({fill:"green",shape:"dot",text:"Processing..."});
-        
-        if ((msg.topic != "completion")&&(msg.topic != "image")&&(msg.topic != "edit")&&(msg.topic != "turbo")) {
+
+        const topic = config.topic === "__EMPTY__" ? msg.topic : config.topic;
+        if (ACCEPT_TOPIC_LIST.indexOf(topic) < 0) {
             node.status({fill:"red",shape:"dot",text:"msg.topic is incorrect"});
-            node.error("msg.topic must be 'completion', 'image', 'edit', or 'turbo'")
+            node.error(`msg.topic must be ${ACCEPT_TOPIC_LIST.map(item => `'${item}'`).join(", ")}`)
             node.send(msg)
-        } else if (msg.topic === "image") {
+        } else if (topic === "image") {
             try {
                 const response = await openai.createImage({
                   prompt: msg.payload,
@@ -32,7 +34,7 @@ module.exports = (RED) => {
                 } else {
                     msg.payload = response.data.data[0].b64_json;
                 }
-                
+
                 msg.full = response;
                 node.status({fill:"blue",shape:"dot",text:"Response complete"});
                 node.send(msg)
@@ -45,7 +47,7 @@ module.exports = (RED) => {
                 node.error(error.message);
               }
             }
-        } else if (msg.topic === "edit") {
+        } else if (topic === "edit") {
             try {
                 const response = await openai.createEdit({
                   model: "text-davinci-edit-001",
@@ -66,7 +68,7 @@ module.exports = (RED) => {
                 node.error(error.message);
               }
             }
-        } else if (msg.topic === "turbo") {
+        } else if (topic === "turbo") {
             try {
                 if (typeof msg.history === "undefined") msg.history = [];
                 msg.topic = "turbo";

@@ -6,13 +6,31 @@
             name: {value: ""},
             API_KEY: {value: "", required:true},
             Organization: {value: "", required:true},
+            topic: {value: "__EMPTY__", required:true},
         },
         inputs:1,
         outputs:1,
         icon: "arrow-in.png",
         label: function() {
             return this.name||"chatgpt";
-        }
+        },
+        oneditprepare: function () {
+            const node = this;
+            $('#node-input-topic').typedInput({
+                types: [
+                    {
+                        value: node.mode,
+                        options: [
+                            { value: "completion", label: "completion"},
+                            { value: "image", label: "image"},
+                            { value: "edit", label: "edit"},
+                            { value: "turbo", label: "turbo"},
+                            { value: "__EMPTY__", label: "Read from msg.topic"},
+                        ],
+                    },
+                ],
+            });
+        },
     });
  </script>
  <script type="text/html" data-template-name="chatgpt">
@@ -34,6 +52,10 @@
         </label>
         <input type="text" id="node-input-Organization" placeholder="organization">
     </div>
+    <div class="form-row">
+        <label for="node-input-topic"><i class="fa icon-tag"></i> Topic</label>
+        <input type="text" id="node-input-topic" />
+    </div>
  </script>
  <script type="text/html" data-help-name="chatgpt">
     <h1>Description</h1>
@@ -41,7 +63,7 @@
     <h2>Setup</h2>
     <p>When editing the nodes properties, to get your <code>OPENAI_API_KEY</code> log in to <a href="https://chat.openai.com/chat">ChatGPT</a> then visit <a href="https://platform.openai.com/account/api-keys">https://platform.openai.com/account/api-keys</a> click "+ Create new secret key" then copy and paste the "API key" into the nodes <code>API_KEY</code> property value.</p>
     <p>To get your <code>Organization</code> visit <a href="https://platform.openai.com/account/org-settings">https://platform.openai.com/account/org-settings</a> then copy and paste the "OrganizationID" into the nodes <code>Organization</code> property value.</p>
-    
+
     <h3>Inputs</h3>
     <dl class="message-properties">
         <dt>msg.payload
@@ -71,7 +93,7 @@
         <dt class="optional">msg.history
             <span class="property-type">array</span>
         </dt>
-        <dd> The conversation history.</dd> 
+        <dd> The conversation history.</dd>
         <dt class="optional">msg.n
             <span class="property-type">number</span>
         </dt>
